@@ -1,4 +1,4 @@
-// Your NextAuth configuration file (e.g., [...nextauth].ts)
+
 
 import prisma from '@/db';
 import db from '@/db';
