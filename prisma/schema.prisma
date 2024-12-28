@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session{
+  id String @id @default(cuid())
+  sessionToken String @unique
+  userId Int
+  expires DateTime
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+}
+model Post {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String   @db.VarChar(255)
+  content   String?
+  published Boolean  @default(false)
+  comments  Comment[]
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int
+}
+
+model Comment {
+  id          Int   @id @default(autoincrement())
+  text        String @db.VarChar(255)
+  commentedOn Post   @relation(fields: [postId], references: [id])
+  commentedBy User   @relation(fields: [userId], references: [id])
+  postId      Int
+  userId      Int
+}
+
+model Profile {
+  id     Int     @id @default(autoincrement())
+  bio    String?
+  user   User    @relation(fields: [userId], references: [id])
+  userId Int     @unique
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  password    String 
+  name        String?
+  posts       Post[]
+  profile     Profile?
+  comments    Comment[]
+  token       String?
+  sessions    Session[]
+  joinedDate  DateTime @default(now())
+  following   Follow[] @relation("Following")
+  followers   Follow[] @relation("Followers")
+}
+
+model Follow {
+  follower    User @relation("Following", fields: [followerId], references: [id])
+  followerId  Int
+  following   User @relation("Followers", fields: [followingId], references: [id])
+  followingId Int
+
+// Creating unique follower/following relation no duplication
+  @@id([followerId, followingId])
+}
